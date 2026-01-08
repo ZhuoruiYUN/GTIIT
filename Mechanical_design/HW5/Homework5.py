@@ -1,19 +1,19 @@
 from numpy import cos, sin, deg2rad
 # Problem 1
-M_Nl = 788
-M_fl = 304
+M_Nl = 787.6289
+M_fl = 304.149
 c = 212e-3
 b = 32e-3
 r = 150e-3
 f = 0.32 #coefficient of friction
 pa_ref = 1000e3
 F = (M_Nl + M_fl )/ c
-print(f"The actuate force is : {F:.4}")
+print(f"The actuate force is : {F:.6}")
 #problem2
 M_Nr = M_Nl/1000
 M_fr = M_fl/1000
 pa = c * F / (M_Nr - M_fr)
-print(f"the maximum pressure between right hand side shoe and rim is {pa :.4}") 
+print(f"the maximum pressure between right hand side shoe and rim is {pa :.6}") 
 #problem3
 theta_1 = deg2rad(0)
 theta_2 = deg2rad(126)
