@@ -1,133 +1,145 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 
-# 1. 结构参数与速度限制 (Modified DH)
+# --- 1. 机器人参数与 DH 模型 ---
+# IRB 2400 Modified DH (a, alpha, d, theta_offset)
 DH_PARAMS = np.array([
     [0.0, 0.0, 0.615, 0.0],
     [0.100, np.pi / 2, 0.0, 0.0],
     [0.705, 0.0, 0.0, 0.0],
     [0.135, np.pi / 2, 0.755, 0.0],
     [0.0, -np.pi / 2, 0.0, 0.0],
-    [0.0, np.pi / 2, 0.085, 0.0]
+    [0.0,  np.pi / 2, 0.085, 0.0]
 ])
 
-# 关节速度限制 (rad/s)
-joint_speed_limits = np.deg2rad([150.0, 150.0, 150.0, 360.0, 360.0, 450.0])
-link_colors = ['red', 'blue', 'green', 'orange', 'purple', 'yellow']
+JOINT_SPEED_LIMITS = np.deg2rad([150.0, 150.0, 150.0, 360.0, 360.0, 450.0])
+DT = 0.02  # 提高采样频率以获得更精确的加速度
 
 
-def dh_transform(a_prev, alpha_prev, d, theta):
-    ca, sa = np.cos(alpha_prev), np.sin(alpha_prev)
+def dh_matrix(a, alpha, d, theta):
+    ca, sa = np.cos(alpha), np.sin(alpha)
     ct, st = np.cos(theta), np.sin(theta)
-    return np.array([[ct, -st, 0, a_prev],
-                     [st * ca, ct * ca, -sa, -sa * d],
-                     [st * sa, ct * sa, ca, ca * d],
-                     [0.0, 0.0, 0.0, 1.0]])
+    return np.array([
+        [ct, -st, 0, a],
+        [st * ca, ct * ca, -sa, -sa * d],
+        [st * sa, ct * sa, ca, ca * d],
+        [0, 0, 0, 1]
+    ])
 
 
-def forward_kinematics_full(q):
+def get_fk(q):
     T = np.eye(4)
-    joints_pos = [T[:3, 3]]
+    positions = [T[:3, 3]]
     for i in range(6):
-        a, alpha, d, offset = DH_PARAMS[i]
-        T = T @ dh_transform(a, alpha, d, q[i] + offset)
-        joints_pos.append(T[:3, 3])
-    return T, np.array(joints_pos)
+        T = T @ dh_matrix(DH_PARAMS[i, 0], DH_PARAMS[i, 1], DH_PARAMS[i, 2], q[i] + DH_PARAMS[i, 3])
+        positions.append(T[:3, 3])
+    return T, np.array(positions)
 
 
-def ik_dls(target_pos, q_init):
-    q = q_init.copy()
-    lam = 0.02
-    for _ in range(150):
-        T, _ = forward_kinematics_full(q)
-        error = target_pos - T[:3, 3]
-        if np.linalg.norm(error) < 1e-4: break
+def ik_dls(target_pos, q_guess):
+    q = q_guess.copy()
+    for _ in range(100):
+        T, _ = get_fk(q)
+        err = target_pos - T[:3, 3]
+        if np.linalg.norm(err) < 1e-5: break
+
+        # 数值雅可比
         J = np.zeros((3, 6))
-        eps = 1e-7
+        eps = 1e-8
         for i in range(6):
             q_eps = q.copy();
             q_eps[i] += eps
-            T_eps, _ = forward_kinematics_full(q_eps)
+            T_eps, _ = get_fk(q_eps)
             J[:, i] = (T_eps[:3, 3] - T[:3, 3]) / eps
-        dq = J.T @ np.linalg.inv(J @ J.T + lam ** 2 * np.eye(3)) @ error
+
+        # Damped Least Squares
+        dq = J.T @ np.linalg.inv(J @ J.T + 0.01 ** 2 * np.eye(3)) @ err
         q += dq
     return q
 
 
-# --- 轨迹规划 ---
-# 1. 初始点到起点 (限速 PTP)
+# --- 2. 任务定义 ---
 P_orig = np.array([0.4, 0.4, 1.5])
-P_weld_start = np.array([0.8, 0.5, 1.5])  # 圆起点 (0.5+0.3)
-q_orig = ik_dls(P_orig, np.zeros(6))
-q_weld_start = ik_dls(P_weld_start, q_orig)
-
-T_ptp = np.max(np.abs(q_weld_start - q_orig) / joint_speed_limits)
-dt = 0.05
-traj_ptp = np.array([q_orig + (t / T_ptp) * (q_weld_start - q_orig) for t in np.arange(0, T_ptp, dt)])
-
-# 2. 圆周焊接 (匀速 0.2 m/s)
 C_center = np.array([0.5, 0.5, 1.5])
-Radius = 0.3
-V_target = 0.2
-T_circle = (2 * np.pi * Radius) / V_target
-traj_weld = []
-q_curr = q_weld_start
-for t in np.arange(0, T_circle, dt):
-    angle = (V_target / Radius) * t
-    target = np.array([C_center[0] + Radius * np.cos(angle), C_center[1] - Radius * np.sin(angle), 1.5])
-    q_curr = ik_dls(target, q_curr)
-    traj_weld.append(q_curr)
-traj_weld = np.array(traj_weld)
+R = 0.3
+P_start = C_center + np.array([R, 0, 0])  # 右侧起始点: [0.8, 0.5, 1.5]
 
-full_traj = np.vstack((traj_ptp, traj_weld))
+# --- 3. 阶段 1: 初始点 -> 起始点 (Time Optimal LIN) ---
+q_orig = ik_dls(P_orig, np.array([0, 0.1, 0.1, 0, 0, 0]))
+q_start = ik_dls(P_start, q_orig)
 
-# --- 绘图与动画 ---
+# 计算“尽快到达”的时间 (根据关节速度限制)
+dq_needed = np.abs(q_start - q_orig)
+t_min = np.max(dq_needed / JOINT_SPEED_LIMITS)
+T_lin = t_min * 1.2  # 预留20%余量保证加速度可行性
+
+t_steps_lin = np.arange(0, T_lin, DT)
+traj_q_lin = []
+traj_p_lin = []
+
+for t in t_steps_lin:
+    s = t / T_lin
+    p_interp = P_orig + s * (P_start - P_orig)
+    q_interp = ik_dls(p_interp, q_orig if t == 0 else traj_q_lin[-1])
+    traj_q_lin.append(q_interp)
+    traj_p_lin.append(p_interp)
+
+# --- 4. 阶段 2: 顺时针圆周焊接 ---
+v_weld = 0.2
+t_circle_total = (2 * np.pi * R) / v_weld
+t_steps_weld = np.arange(0, t_circle_total, DT)
+
+traj_q_weld = []
+traj_p_weld = []
+
+for t in t_steps_weld:
+    # 顺时针: angle 从 0 开始减小
+    angle = -(v_weld / R) * t
+    p_circle = np.array([
+        C_center[0] + R * np.cos(angle),
+        C_center[1] + R * np.sin(angle),
+        C_center[2]
+    ])
+    q_circle = ik_dls(p_circle, traj_q_lin[-1] if t == 0 else traj_q_weld[-1])
+    traj_q_weld.append(q_circle)
+    traj_p_weld.append(p_circle)
+
+# --- 5. 数据分析 (速度与加速度) ---
+full_q = np.vstack((traj_q_lin, traj_q_weld))
+full_v = np.diff(full_q, axis=0) / DT
+full_a = np.diff(full_v, axis=0) / DT
+
+print(f"初始点关节角 (deg): {np.rad2deg(q_orig)}")
+print(f"到达起点所需时间: {T_lin:.2f} s")
+print(f"最大关节速度 (rad/s): {np.max(np.abs(full_v), axis=0)}")
+print(f"最大关节加速度 (rad/s²): {np.max(np.abs(full_a), axis=0)}")
+
+# --- 6. 动画制作 ---
 fig = plt.figure(figsize=(10, 8))
 ax = fig.add_subplot(111, projection='3d')
-# 修改绘图范围为正常顺序，通过 view_init 调整视角
-ax.set_xlim([-1.2, 1.2])
-ax.set_ylim([-1.2, 1.2]) # 回复正常顺序
+ax.set_xlim([0, 1.2]);
+ax.set_ylim([0, 1.2]);
 ax.set_zlim([0, 1.8])
+ax.view_init(elev=30, azim=45)
 
-# 关键：通过调整视角（Elevation 和 Azimuth）来获得正确的观察感
-# elev=30 (仰角), azim=-60 (方位角) 是观察机器人的常用交互视角
-ax.view_init(elev=30, azim=-60)
-
-current_artists = []
-
-
-def draw_robot(Ps, frame_idx):
-    arts = []
-    # 绘制多色连杆
-    for i in range(len(Ps) - 1):
-        line, = ax.plot(Ps[i:i + 2, 0], Ps[i:i + 2, 1], Ps[i:i + 2, 2], color=link_colors[i], lw=4)
-        arts.append(line)
-    # 绘制关节原点 (散点)
-    sc = ax.scatter(Ps[:, 0], Ps[:, 1], Ps[:, 2], c='k', s=20)
-    arts.append(sc)
-    return arts
-
-
-ee_trail = []
+links, = ax.plot([], [], [], 'o-', lw=4, color='orange')
+trail, = ax.plot([], [], [], 'k--', alpha=0.4)
+history_p = []
 
 
 def update(i):
-    for a in current_artists: a.remove()
-    current_artists.clear()
+    T, Ps = get_fk(full_q[i])
+    links.set_data(Ps[:, 0], Ps[:, 1])
+    links.set_3d_properties(Ps[:, 2])
 
-    T, Ps = forward_kinematics_full(full_traj[i])
-    current_artists.extend(draw_robot(Ps, i))
-
-    ee_trail.append(T[:3, 3])
-    trail_arr = np.array(ee_trail)
-    t_line, = ax.plot(trail_arr[:, 0], trail_arr[:, 1], trail_arr[:, 2], 'k--', lw=1, alpha=0.4)
-    current_artists.append(t_line)
-    return current_artists
+    history_p.append(Ps[-1])
+    h_arr = np.array(history_p)
+    trail.set_data(h_arr[:, 0], h_arr[:, 1])
+    trail.set_3d_properties(h_arr[:, 2])
+    return links, trail
 
 
-print(f"正在生成并保存 GIF (PTP时间: {T_ptp:.2f}s, 焊接时间: {T_circle:.2f}s)...")
-ani = FuncAnimation(fig, update, frames=len(full_traj), interval=50)
-ani.save('irb2400_full_task.gif', writer='pillow', fps=20)
+ani = FuncAnimation(fig, update, frames=len(full_q), interval=DT * 1000, blit=True)
+plt.title("IRB 2400 Clockwise Circular Welding Task")
 plt.show()
