@@ -1,4 +1,4 @@
-IRB2400 Welding Trajectory Project
+# IRB2400 Welding Trajectory Project
 
 This project implements kinematic modeling, trajectory planning, and dynamic analysis for the ABB IRB2400/10 industrial robot.
 The code is refactored into three Python modules using class-based encapsulation, while preserving all original functionality and results.
