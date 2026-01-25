@@ -17,11 +17,11 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 # ---------------------------
 DH = np.array([
     [0.0,   0.0,        0.615, 0.0],
-    [0.100, -np.pi/2,   0.0,   0.0],
+    [0.100, np.pi/2,   0.0,   0.0],
     [0.705, 0.0,        0.0,   0.0],
     [0.135, np.pi/2,    0.755, 0.0],
-    [0.0,   np.pi/2,    0.0,   0.0],
-    [0.0,  -np.pi/2,    0.085, 0.0],
+    [0.0,   -np.pi/2,    0.0,   0.0],
+    [0.0,  np.pi/2,    0.085, 0.0],
 ], dtype=float)
 
 joint_speed_deg_per_s = np.array([150.0, 150.0, 150.0, 360.0, 360.0, 450.0])
@@ -552,7 +552,7 @@ def main():
     )
 
     print("正在保存 GIF，请稍候...")
-    ani.save('irb2400_welding_task-mingyi.gif', writer='pillow', fps=int(1 / dt))
+    ani.save('irb2400_welding_task.gif', writer='pillow', fps=int(1 / dt))
     print("GIF 已保存为 'irb2400_welding_task.gif'")
 
     plt.show()
