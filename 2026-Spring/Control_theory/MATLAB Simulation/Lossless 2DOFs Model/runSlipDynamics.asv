@@ -1,0 +1,30 @@
+clear; clc;
+
+%% ODE45
+obj = SLIPdynamics(); % Initialize Class
+des_vel = 1; % desired horizontal velocity [m/s]
+obj = simulate(obj,@raibertHopperCtrl,[0,6],des_vel);
+
+%% plot
+
+figure(9)
+subplot(2,1,1)
+hold off
+plot(obj.t, obj.y_body,'b-','LineWidth', 2);
+ylabel('Y [m]','Interpreter', 'latex', 'fontsize', 20);
+title(['SLIP Raibert Hopper, Desired Speed ',num2str(des_vel),' m/sec'],'fontsize', 15);
+
+subplot(2,1,2)
+hold off
+plot(obj.t,obj.dx_body,'b-','LineWidth', 2,'DisplayName','Simulation');
+hold on
+plot(obj.t,des_vel*ones(size(obj.t)),'r--','LineWidth', 2,'DisplayName','Desired');
+lgd = legend('Location','SouthEast');  
+lgd.Interpreter = 'latex';  
+lgd.FontSize = 20; 
+ylabel('X [m/s]','Interpreter', 'latex', 'fontsize', 20);
+xlabel('Time (s)','Interpreter', 'latex', 'fontsize', 20);
+saveas(gcf, 'outputs.pdf');
+
+%% animation
+animateSlip(obj);

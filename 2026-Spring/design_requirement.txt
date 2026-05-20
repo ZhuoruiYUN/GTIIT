@@ -1,0 +1,48 @@
+1. Detailed Project Report (To be finished by 30th May 2026)
+This is the core documentation of your work. Ensure it includes the following sections with sufficient technical depth:
+A. Design Documentation
+	•	Solid Models & Drawings:
+	◦	Fully dimensioned 2D engineering drawings (orthographic views, sections).
+	◦	3D CAD models (rendered images, exploded views, assembly diagrams).
+	◦	Critical design features highlighted (e.g., joints, interfaces).
+	•	Material Selection & Specification:
+	◦	Justification for chosen materials (e.g., mechanical properties, cost, manufacturability).
+	◦	Material data sheets or references to standards (e.g., ASTM, ISO).
+	•	Tolerancing & GD&T:
+	◦	Tolerance analysis for critical fits/functions.
+	◦	Geometric Dimensioning and Tolerancing (GD&T) symbols where applicable.
+B. Analysis & Validation
+	•	Simulation Results:
+	◦	Stress/strain, thermal, or fluid dynamics analysis (include plots, contour maps).
+	◦	Comparison with theoretical calculations or design requirements.
+	•	Optimization Iterations:
+	◦	Summary of design changes made based on analysis (e.g., "Increased wall thickness by 2mm to reduce stress concentrations").
+	◦	Trade-off studies (e.g., weight vs. strength).
+C. Supporting Documents
+	•	SRR (System Requirements Review):
+	◦	Original problem statement, customer needs, and functional requirements.
+	•	PDR (Preliminary Design Review):
+	◦	Early design concepts, selection rationale, and feasibility analysis.
+	•	Manufacturability Assessment:
+	◦	Production methods (e.g., machining, 3D printing) and cost estimates.
+	◦	Design-for-Manufacturing (DFM) improvements.
+D. Results & Conclusions
+	•	Summary of key achievements and lessons learned.
+	•	Recommendations for future iterations.
+
+2. Term Paper (To be finished by 30th May 2026)
+Follow a standard academic structure:
+	•	Abstract (≤250 words summarizing objectives/key outcomes).
+	•	Introduction (Context, problem statement, project goals).
+	•	Literature Review (Prior work cited with proper references).
+	•	Methods (Tools/software used, testing procedures).
+	•	Results & Discussion (Data interpretation, limitations).
+	•	Conclusion & Future Work.
+	•	References (APA/IEEE format).
+Action Items & Deadlines for Upcoming Weeks
+	•	Week 1-2: Complete all modeling, analysis, and manufacturability assessments (to be finished by 15th May 2026).
+	•	Week 3-4: Draft the report and term paper.
+	•	Week 5: Final revisions and submission.
+	•	01st June to 05th June: Project Presentation Week
+	•	08th June to 12th June: Project Submission Week 
+	•	Support: Schedule office hours or email me for feedback on drafts.

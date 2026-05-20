@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scale Monitor — CZL611N / HX711</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: rgba(0,0,0,0.10);
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --text3: #aaa9a4;
+    --green: #1D9E75;
+    --green-light: rgba(29,158,117,0.10);
+    --amber: #BA7517;
+    --red: #A32D2D;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #18181a;
+      --surface: #232326;
+      --surface2: #2c2c30;
+      --border: rgba(255,255,255,0.09);
+      --text: #f0eee8;
+      --text2: #9e9d97;
+      --text3: #5e5d59;
+      --green-light: rgba(29,158,117,0.15);
+    }
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; padding: 2rem 1.25rem 3rem; }
+  .wrap { width: 100%; max-width: 540px; display: flex; flex-direction: column; gap: 1.1rem; }
+
+  /* header */
+  .header { display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text3); }
+  .pill {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text3); padding: 4px 10px;
+    border: 0.5px solid var(--border); border-radius: 20px;
+    background: var(--surface);
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); transition: background 0.4s; }
+  .dot.ok { background: var(--green); animation: blink 1.8s infinite; }
+  .dot.error { background: var(--red); }
+  .dot.connecting { background: var(--amber); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  /* ws row */
+  .ws-row { display: flex; gap: 8px; }
+  .ws-row input {
+    flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius-sm); border: 0.5px solid var(--border);
+    background: var(--surface); color: var(--text); outline: none;
+  }
+  .ws-row input:focus { border-color: var(--green); }
+  .ws-row button, .btn {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.05em; padding: 0.55rem 1.1rem;
+    border-radius: var(--radius-sm); border: 0.5px solid var(--border);
+    background: var(--surface); color: var(--text); cursor: pointer; transition: background 0.15s;
+  }
+  .ws-row button:hover, .btn:hover { background: var(--surface2); }
+  .ws-row button:active, .btn:active { transform: scale(0.97); }
+
+  /* big display */
+  .big-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: var(--radius); padding: 2.2rem 1.5rem 1.6rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+  }
+  .big-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+  .big-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 76px; font-weight: 700;
+    line-height: 1; letter-spacing: -0.02em; color: var(--text);
+    transition: color 0.25s;
+  }
+  .big-unit { font-size: 20px; font-weight: 400; color: var(--text2); margin-left: 2px; }
+  .bar-track { width: 100%; height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 1.2rem; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width 0.25s ease, background 0.3s; width: 0%; }
+
+  /* stats */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .stat { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 0.8rem 1rem; }
+  .stat-lbl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+  .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--text); }
+
+  /* chart */
+  .chart-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem 0.85rem; }
+  .chart-lbl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.6rem; font-family: 'JetBrains Mono', monospace; }
+  canvas { display: block; width: 100%; }
+
+  /* controls */
+  .controls { display: flex; gap: 10px; }
+  .controls .btn { flex: 1; text-align: center; }
+  .btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>Scale Monitor — CZL611N / HX711</h1>
+    <div class="pill">
+      <div class="dot connecting" id="dot"></div>
+      <span id="statusText">disconnected</span>
+    </div>
+  </div>
+
+  <div class="ws-row">
+    <input id="wsUrl" value="ws://localhost:8765" />
+    <button id="connectBtn">Connect</button>
+  </div>
+
+  <div class="big-card">
+    <span class="big-label">Weight</span>
+    <div>
+      <span class="big-num" id="mainReading">—</span><span class="big-unit">g</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">Min</div><div class="stat-val" id="minVal">—</div></div>
+    <div class="stat"><div class="stat-lbl">Max</div><div class="stat-val" id="maxVal">—</div></div>
+    <div class="stat"><div class="stat-lbl">Avg (10s)</div><div class="stat-val" id="avgVal">—</div></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-lbl">History — last 60 readings</div>
+    <canvas id="chart" height="90"></canvas>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="tareBtn">Tare / Zero</button>
+    <button class="btn" id="clearBtn">Clear</button>
+    <button class="btn" id="demoBtn">Demo</button>
+  </div>
+
+</div>
+<script>
+const MAX_RANGE = 1000;
+let history = [], ws = null;
+let minV = null, maxV = null;
+let demoInterval = null, demoOn = false;
+let isZeroing = false;
+
+const dot = document.getElementById('dot');
+const statusEl = document.getElementById('statusText');
+const mainEl = document.getElementById('mainReading');
+const barEl = document.getElementById('barFill');
+const minEl = document.getElementById('minVal');
+const maxEl = document.getElementById('maxVal');
+const avgEl = document.getElementById('avgVal');
+const canvas = document.getElementById('chart');
+const ctx = canvas.getContext('2d');
+
+function setStatus(state, msg) {
+  dot.className = 'dot ' + state;
+  statusEl.textContent = msg;
+}
+
+function update(raw) {
+  if (isZeroing) return;
+  const g = parseFloat(raw.toFixed(2));
+  mainEl.textContent = g.toFixed(1);
+  const pct = Math.min(100, Math.max(0, (g / MAX_RANGE) * 100));
+  barEl.style.width = pct + '%';
+  barEl.style.background = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--amber)' : 'var(--green)';
+  if (minV === null || g < minV) minV = g;
+  if (maxV === null || g > maxV) maxV = g;
+  minEl.textContent = minV.toFixed(1);
+  maxEl.textContent = maxV.toFixed(1);
+  history.push(g);
+  if (history.length > 60) history.shift();
+  const recent = history.slice(-50);
+  avgEl.textContent = (recent.reduce((a,b) => a+b, 0) / recent.length).toFixed(1);
+  drawChart();
+}
+
+function drawChart() {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.offsetWidth || 480;
+  const h = 90;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  if (history.length < 2) return;
+  const lo = Math.min(0, ...history), hi = Math.max(1, ...history);
+  const range = hi - lo || 1;
+  const toY = v => h - 8 - ((v - lo) / range) * (h - 16);
+  const toX = i => (i / (history.length - 1)) * w;
+  ctx.beginPath();
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--green').trim() || '#1D9E75';
+  ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  history.forEach((v, i) => i === 0 ? ctx.moveTo(toX(i), toY(v)) : ctx.lineTo(toX(i), toY(v)));
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.fillStyle = 'rgba(29,158,117,0.10)';
+  history.forEach((v, i) => ctx.lineTo(toX(i), toY(v)));
+  ctx.lineTo(toX(history.length-1), h); ctx.lineTo(0, h); ctx.closePath(); ctx.fill();
+}
+
+function connectWS(url) {
+  if (ws) { ws.close(); ws = null; }
+  stopDemo();
+  setStatus('connecting', 'connecting…');
+  try {
+    ws = new WebSocket(url);
+    ws.onopen = () => setStatus('connecting', 'waiting for Arduino…');
+    ws.onmessage = e => {
+      try {
+        const d = JSON.parse(e.data);
+        if (d.status === 'zeroing') {
+          isZeroing = true;
+          mainEl.textContent = '…';
+          setStatus('connecting', 'zeroing — keep scale empty');
+        } else if (d.status === 'ready' || d.status === 'ok') {
+          isZeroing = false;
+          setStatus('ok', 'connected');
+        } else if (d.status && d.status.startsWith('error')) {
+          setStatus('error', d.status);
+        }
+        if (!isZeroing && d.grams !== undefined) update(d.grams);
+      } catch {}
+    };
+    ws.onerror = () => setStatus('error', 'error — is scale_reader.py running?');
+    ws.onclose = () => setStatus('error', 'connection closed');
+  } catch { setStatus('error', 'invalid URL'); }
+}
+
+document.getElementById('connectBtn').onclick = () =>
+  connectWS(document.getElementById('wsUrl').value.trim());
+
+document.getElementById('tareBtn').onclick = () => {
+  // Arduino auto-zeros at startup; this button just resets the min/max stats.
+  minV = null; maxV = null;
+  minEl.textContent = maxEl.textContent = '—';
+};
+
+document.getElementById('clearBtn').onclick = () => {
+  history = []; minV = null; maxV = null;
+  mainEl.textContent = '—';
+  minEl.textContent = maxEl.textContent = avgEl.textContent = '—';
+  barEl.style.width = '0%';
+  drawChart();
+};
+
+function startDemo() {
+  if (demoOn) return;
+  demoOn = true;
+  if (ws) { ws.close(); ws = null; }
+  document.getElementById('demoBtn').classList.add('active');
+  setStatus('ok', 'demo mode');
+  let t = 0;
+  demoInterval = setInterval(() => {
+    t += 0.12;
+    update(200 + Math.sin(t) * 90 + (Math.random() - 0.5) * 12);
+  }, 200);
+}
+function stopDemo() {
+  demoOn = false;
+  clearInterval(demoInterval);
+  document.getElementById('demoBtn').classList.remove('active');
+}
+document.getElementById('demoBtn').onclick = () => demoOn ? (stopDemo(), setStatus('connecting', 'disconnected')) : startDemo();
+
+window.addEventListener('resize', drawChart);
+</script>
+</body>
+</html>
