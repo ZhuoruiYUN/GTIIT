@@ -1,0 +1,381 @@
+\documentclass[11pt,a4paper]{article}
+
+% Compile with pdfLaTeX. Replace the blue prompts and add the three
+% Cinderella screenshots before submitting the final PDF.
+\usepackage[margin=25mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,array,tabularx}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\renewcommand{\arraystretch}{1.2}
+
+\newcommand{\studentname}{\textit{[Student name]}}
+\newcommand{\studentid}{\textit{[Student ID]}}
+\newcommand{\prompt}[1]{\textcolor{blue!60!black}{\textbf{[To complete: #1]}}}
+\newcommand{\blank}{\underline{\hspace{1.5cm}}}
+\newcommand{\shortblank}{\underline{\hspace{0.8cm}}}
+\newcommand{\screenshot}[1]{%
+  \IfFileExists{#1}{\includegraphics[width=0.88\linewidth,height=70mm,keepaspectratio]{#1}}{%
+    \fbox{\parbox[c][53mm][c]{0.83\linewidth}{\centering
+      \prompt{Insert Cinderella screenshot: \texttt{\detokenize{#1}}}\\[1ex]
+      Show the assembled mechanism and its DOF annotation.}}}}
+
+\begin{document}
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+  \centering
+  \vspace*{32mm}
+  {\Large Kinematics of Mechanisms\par}
+  \vspace{9mm}
+  {\huge\bfseries Homework 1\par}
+  \vspace{14mm}
+  {\Large Report and Solutions\par}
+  \vfill
+  \begin{tabular}{@{}ll@{}}
+    Student name: & \studentname\\[2mm]
+    Student ID: & \studentid\\[2mm]
+    Submission date: & \textit{[Date]}
+  \end{tabular}
+  \vspace*{20mm}
+\end{titlepage}
+
+\hypersetup{pageanchor=true}
+\tableofcontents
+\newpage
+
+\section{Theoretical Questions}
+
+\subsection{Question 1: Mechanism and machine}
+A \emph{mechanism} is an arrangement of rigid bodies (links) connected by
+kinematic pairs so that their relative motion is constrained. Its purpose is
+to transmit or transform motion, such as converting a crank's continuous
+rotation into the oscillation of a rocker. A four-bar linkage is a mechanism.
+
+A \emph{machine} is an assembly that uses mechanisms together with other
+components to perform a useful task by transmitting or converting energy and
+forces. A reciprocating engine, for example, contains a slider-crank
+mechanism that converts piston motion into shaft rotation, while the complete
+engine also includes the energy source and supporting systems. Thus,
+``mechanism'' emphasizes the prescribed relative motion; ``machine''
+emphasizes useful function and power transfer. A machine may contain several
+mechanisms, and a mechanism can be part of a machine.
+
+\subsection{Question 2: Four-bar linkage and its types}
+A planar four-bar linkage is a closed chain of four rigid links joined by four
+revolute (pin) joints. One link is fixed as the frame; the other three are
+commonly called the input link, coupler, and output link. For an ordinary
+nondegenerate linkage, the planar mobility equation gives
+\begin{equation}
+  M=3(n-1)-2J_1-J_2=3(4-1)-2(4)-0=1,
+  \label{eq:fourbar-mobility}
+\end{equation}
+where $n$ includes the frame, $J_1$ counts one-DOF joints, and $J_2$
+counts two-DOF joints. One independent input therefore fixes the
+configuration within a chosen assembly branch.
+
+The usual types describe how the two links attached to the frame move:
+\begin{itemize}
+  \item \textbf{Double-crank (drag link):} both adjacent links can make full
+    revolutions relative to the frame.
+  \item \textbf{Crank-rocker:} one adjacent link can make a full revolution;
+    the other only oscillates through a bounded angle.
+  \item \textbf{Double-rocker:} neither adjacent link can make a full
+    revolution; both oscillate.
+\end{itemize}
+Which type results depends on both the link lengths and the choice of fixed
+link. The coupler's motion is not itself used to name these three types.
+The strict Grashof classifications are given in Question~4.
+
+\subsection{Question 3: Main lower kinematic pairs and their DOF}
+A lower kinematic pair connects two bodies through contacting surfaces.
+Its DOF is the number of independent \emph{relative} motion coordinates
+allowed by the joint. In three-dimensional space, the common lower pairs
+are as follows.
+
+\begin{table}[H]
+  \centering
+  \caption{Main lower pairs and relative spatial mobility.}
+  \begin{tabularx}{\linewidth}{@{}l c X@{}}
+    \toprule
+    Pair & DOF & Permitted relative motion\\
+    \midrule
+    Revolute (R) & 1 & Rotation about a fixed axis.\\
+    Prismatic (P) & 1 & Translation along a fixed axis.\\
+    Helical (H) & 1 & Coupled rotation and translation along an axis, with a fixed screw pitch.\\
+    Cylindrical (C) & 2 & Independent rotation about and translation along the same axis.\\
+    Spherical (S) & 3 & Rotation about three independent axes through a common center; no translation.\\
+    Planar (E) & 3 & Two independent translations in a plane and one rotation normal to it.\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+The values in Table~1 are \emph{spatial} joint DOFs. For the planar mobility
+count in Part~A, a planar revolute or prismatic pair is a one-DOF joint,
+whereas a general planar higher pair permits two relative DOFs. Joint DOF
+must not be confused with the mobility of the complete mechanism.
+
+\subsection{Question 4: Grashof, non-Grashof, and special case}
+Let $S$ and $L$ be the shortest and longest lengths of a four-bar chain,
+and let $P$ and $Q$ be the other two lengths. For a nondegenerate four-bar,
+Grashof's criterion compares the two sums:
+\begin{equation}
+  \begin{array}{rcll}
+    S+L &<& P+Q & \text{strict Grashof chain},\\
+    S+L &>& P+Q & \text{non-Grashof chain},\\
+    S+L &=& P+Q & \text{Grashof equality, or change-point case}.
+  \end{array}
+  \label{eq:grashof}
+\end{equation}
+
+For a \textbf{strict Grashof chain}, at least the shortest link can rotate
+fully relative to another link. Fixing the shortest link gives a
+double-crank; fixing a link adjacent to the shortest gives a crank-rocker;
+fixing the link opposite the shortest gives a double-rocker. These statements
+assume distinct ordinary link lengths and a feasible assembly.
+
+For a \textbf{non-Grashof chain}, no link can rotate through a complete
+revolution relative to the other links. With any link fixed, the ordinary
+inversion is a double-rocker.
+
+At \textbf{equality}, $S+L=P+Q$, the linkage can reach a collinear
+\emph{change-point} configuration. Its motion there is singular: the usual
+classification becomes a limiting case, and continuation through the
+aligned position can depend on the assembly branch or physical guidance.
+It should therefore be reported separately instead of being treated as an
+ordinary strict Grashof or non-Grashof linkage.
+
+\section{Part A: Cinderella Models and Mobility}
+Create each mechanism in Cinderella, label its mobility with the
+\texttt{Add text} tool, and insert a screenshot below. Submit the three
+corresponding \texttt{.cdy} files with the report. For each model, identify
+\emph{rigid bodies}, including the ground, before counting joints. If more
+than two links meet at one pin, count the equivalent binary joints
+appropriately. Explain any pin-in-slot or contact modeling convention.
+
+For a general planar mechanism, use the Gr\"ubler--Kutzbach count
+\begin{equation}
+  M=3(n-1)-2J_1-J_2,
+  \label{eq:mobility}
+\end{equation}
+where $n$ is the number of links including ground, $J_1$ the number of
+one-DOF lower pairs, and $J_2$ the number of two-DOF higher pairs.
+Check the count against observed independent motions, especially if a
+mechanism has redundant constraints or a special geometry.
+
+\subsection{Case 1: Compound linkage}
+The dimensions supplied in the assignment are
+\begin{equation*}
+\begin{gathered}
+  AB=2,\ BC=9,\ CD=6,\ DE=6,\ EQ=16,\ QG=6,\\
+  EF=8,\ QL=8,\ DP=9,\ PG=7,\ PA=4,\\
+  \angle DEF=15^\circ,\qquad \angle LQG=15^\circ.
+\end{gathered}
+\end{equation*}
+\begin{figure}[htbp]
+  \centering\screenshot{figures/part_a_case1.png}
+  \caption{Case 1 Cinderella model with its DOF annotation.}
+\end{figure}
+
+\prompt{List the rigid links and identify all pin joints, including any
+compound joints.} The count is
+\begin{align*}
+  n&=\blank,\qquad J_1=\blank,\qquad J_2=\blank,\\
+  M&=3(n-1)-2J_1-J_2=\blank.
+\end{align*}
+\prompt{Explain any special geometric or redundant constraints and verify
+the observed mobility in Cinderella.}
+
+\subsection{Case 2: Casement window mechanism}
+Use $AB=4$, $BC=8$, $CD=5$, $DE=7$, $EF=5$, with the fixed angles
+$\theta=125^\circ$ and $\varphi=125^\circ$. Points $D$ and $F$ are sliders.
+\begin{figure}[htbp]
+  \centering\screenshot{figures/part_a_case2.png}
+  \caption{Case 2 Cinderella model with both sliders and its DOF annotation.}
+\end{figure}
+
+\prompt{Identify each rigid link, each revolute pair, and each prismatic
+pair; explain how the fixed angles are represented.}
+\begin{align*}
+  n&=\blank,\qquad J_1=\blank,\qquad J_2=\blank,\\
+  M&=3(n-1)-2J_1-J_2=\blank.
+\end{align*}
+\prompt{Verify the observed mobility in Cinderella.}
+
+\subsection{Case 3: Bull gear and slotted bar}
+Use $AC=4$, $AB=8$, $AP=8$, and $KB=20$.
+\begin{figure}[htbp]
+  \centering\screenshot{figures/part_a_case3.png}
+  \caption{Case 3 Cinderella model, including gear, slot, slider, and DOF annotation.}
+\end{figure}
+
+\prompt{Describe the constraints at the gear, connecting rod, slot, and
+horizontal slider. State whether a pin-in-slot is counted as a higher pair
+or modeled with an equivalent slider and lower pairs; use one consistent
+count.}
+\begin{align*}
+  n&=\blank,\qquad J_1=\blank,\qquad J_2=\blank,\\
+  M&=3(n-1)-2J_1-J_2=\blank.
+\end{align*}
+\prompt{Verify the observed mobility in Cinderella.}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Part A mobility results.}
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Mechanism & Links $n$ & One-DOF joints $J_1$ & Two-DOF joints $J_2$ & Mobility $M$\\
+    \midrule
+    Case 1 & \blank & \blank & \blank & \blank\\
+    Case 2 & \blank & \blank & \blank & \blank\\
+    Case 3 & \blank & \blank & \blank & \blank\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Part B: Grashof Condition and Linkage Classification}
+\subsection{Task 1: Classify three four-bar chains}
+All lengths in Table~\ref{tab:partb-input} are in centimetres. In each case,
+sort the four lengths into $S,L,P,Q$, compare $S+L$ with $P+Q$, and name
+the mechanism types obtainable by selecting different fixed links.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Given four-bar link lengths in centimetres.}
+  \label{tab:partb-input}
+  \begin{tabular}{@{}lrrrr@{}}
+    \toprule
+    Case & $l_1$ & $l_2$ & $l_3$ & $l_4$\\
+    \midrule
+    1 & 12 & 4 & 10 & 9\\
+    2 & 4 & 8 & 11 & 7\\
+    3 & 6 & 3 & 5 & 4\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Part B, Task 1 working table.}
+  \begin{tabularx}{\linewidth}{@{}lcccccX@{}}
+    \toprule
+    Case & $S$ & $L$ & $P,Q$ & $S+L$ & $P+Q$ & Class and possible fixed-link types\\
+    \midrule
+    1 & \shortblank & \shortblank & \shortblank & \shortblank & \shortblank & \prompt{Class and types}\\
+    2 & \shortblank & \shortblank & \shortblank & \shortblank & \shortblank & \prompt{Class and types}\\
+    3 & \shortblank & \shortblank & \shortblank & \shortblank & \shortblank & \prompt{Class and types}\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\prompt{For each case, show the inequality or equality explicitly. State
+which link is fixed for every claimed double-crank, crank-rocker, or
+double-rocker inversion. Treat a change-point case separately.}
+
+\subsection{Task 2: Design a double-crank mechanism}
+The fixed link is $l_1=4\,\mathrm{cm}$, and the input link is
+$l_2=9\,\mathrm{cm}$. Choose integer coupler and output lengths.
+\begin{equation*}
+  l_3=\blank\,\mathrm{cm},\qquad l_4=\blank\,\mathrm{cm}.
+\end{equation*}
+\prompt{Identify $S,L,P,Q$; demonstrate the strict inequality
+$S+L<P+Q$; confirm that the fixed link $l_1$ is the shortest.}
+
+\section{Part C: Numerical Position Analysis of a Planar Four-Bar}
+Take $A^*=(0,0)$ and $B^*=(r_1,0)$. The input link runs from $A^*$
+to $A$, the coupler from $A$ to $B$, and the output link from $B^*$ to $B$.
+Angles $\theta_2,\theta_3,\theta_4$ are measured counterclockwise from
+the positive $x$-axis. The loop closure is
+\begin{equation}
+  r_2 e^{i\theta_2}+r_3 e^{i\theta_3}
+  =r_1+r_4 e^{i\theta_4}.
+  \label{eq:loop}
+\end{equation}
+For numerical solution, use the two residual equations
+\begin{align}
+  f_1(\theta_3,\theta_4)
+    &=r_2\cos\theta_2+r_3\cos\theta_3-r_1-r_4\cos\theta_4=0,\\
+  f_2(\theta_3,\theta_4)
+    &=r_2\sin\theta_2+r_3\sin\theta_3-r_4\sin\theta_4=0.
+  \label{eq:residuals}
+\end{align}
+One suitable numerical method is Newton--Raphson iteration,
+\begin{equation}
+  \begin{bmatrix}\theta_3\\\theta_4\end{bmatrix}_{k+1}
+  =\begin{bmatrix}\theta_3\\\theta_4\end{bmatrix}_{k}
+   -J(\boldsymbol\theta_k)^{-1}
+    \begin{bmatrix}f_1\\f_2\end{bmatrix}_{k},
+  \qquad
+  J=\begin{bmatrix}
+    -r_3\sin\theta_3 & r_4\sin\theta_4\\
+     r_3\cos\theta_3 &-r_4\cos\theta_4
+  \end{bmatrix}.
+  \label{eq:newton}
+\end{equation}
+Use radians during evaluation and convert the final angles to degrees.
+State the initial guess and the selected assembly branch (open or crossed),
+because two configurations may satisfy the same input data. After finding
+the angles, compute the required diagonal $L=|A^*B|$ from
+\begin{equation}
+  L=\sqrt{(r_1+r_4\cos\theta_4)^2+(r_4\sin\theta_4)^2}.
+  \label{eq:diagonal}
+\end{equation}
+Report a small final residual as a check of the numerical solution.
+
+\subsection{Task 1}
+Given $r_1=90$, $r_2=40$, $r_3=140$, $r_4=110$, and
+$\theta_2=55^\circ$ (length units as supplied in the assignment).
+\begin{align*}
+  \text{Initial guess }(\theta_3,\theta_4)&=\prompt{angles and branch},\\
+  \text{Numerical method and stopping criterion}&=\prompt{method and tolerance},\\
+  \theta_3&=\blank^\circ,\qquad \theta_4=\blank^\circ,\\
+  L=|A^*B|&=\blank,\qquad \lVert(f_1,f_2)\rVert=\blank.
+\end{align*}
+\prompt{Show the substituted residual equations and enough iteration or
+solver detail to make the numerical result reproducible.}
+
+\subsection{Task 2}
+Given $r_1=70$, $r_2=55$, $r_3=120$, $r_4=95$, and
+$\theta_2=115^\circ$ (length units as supplied in the assignment).
+\begin{align*}
+  \text{Initial guess }(\theta_3,\theta_4)&=\prompt{angles and branch},\\
+  \text{Numerical method and stopping criterion}&=\prompt{method and tolerance},\\
+  \theta_3&=\blank^\circ,\qquad \theta_4=\blank^\circ,\\
+  L=|A^*B|&=\blank,\qquad \lVert(f_1,f_2)\rVert=\blank.
+\end{align*}
+\prompt{Show the substituted residual equations and enough iteration or
+solver detail to make the numerical result reproducible.}
+
+\clearpage
+\section{Summary of Results}
+The compact table below follows the grouping in the assignment's example.
+Give the essential result in each cell; the detailed counts and calculations
+remain in Parts A--C.
+
+\begin{table}[H]
+  \centering
+  \caption{Answer summary for all tasks.}
+  \small
+  \begin{tabularx}{\linewidth}{@{}XXX@{}}
+    \toprule
+    Part A: mobility & Part B: classification and design & Part C: position\\
+    \midrule
+    Case 1: $M=\shortblank$ & Task 1, Case 1: \shortblank & Task 1: $L=\shortblank$, $\theta_3=\shortblank^\circ$, $\theta_4=\shortblank^\circ$\\
+    Case 2: $M=\shortblank$ & Task 1, Case 2: \shortblank & Task 2: $L=\shortblank$, $\theta_3=\shortblank^\circ$, $\theta_4=\shortblank^\circ$\\
+    Case 3: $M=\shortblank$ & Task 1, Case 3: \shortblank & \\
+    & Task 2: $l_3=\shortblank\,\mathrm{cm}$, $l_4=\shortblank\,\mathrm{cm}$ & \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% Final submission: replace student details and blue prompts, add three
+% annotated Cinderella screenshots, and archive the PDF with three .cdy
+% files as HW1_firstnameLASTNAME_xxxxxxxxx.zip.
+
+\end{document}
